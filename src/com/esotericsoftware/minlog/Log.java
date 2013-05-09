@@ -1,10 +1,6 @@
 
 package com.esotericsoftware.minlog;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Date;
-
 /**
  * A low overhead, lightweight logging system.
  * @author Nathan Sweet <misc@n4te.com>
@@ -27,7 +23,7 @@ public class Log {
 	 * The level of messages that will be logged. Compiling this and the booleans below as "final" will cause the compiler to
 	 * remove all "if (Log.info) ..." type statements below the set level.
 	 */
-	static private int level = LEVEL_INFO;
+	static private int level = LEVEL_TRACE; // Log everything to delegate control to slf4j
 
 	/** True when the ERROR level will be logged. */
 	static public boolean ERROR = level <= LEVEL_ERROR;
@@ -170,65 +166,29 @@ public class Log {
 	}
 
 	/**
-	 * Performs the actual logging. Default implementation logs to System.out. Extended and use {@link Log#logger} set to handle
+	 * Performs the actual logging. Default implementation logs to slf4j. Extended and use {@link Log#logger} set to handle
 	 * logging differently.
 	 */
 	static public class Logger {
-		private long firstLogTime = new Date().getTime();
+		// Log as "com.esotericsoftware.minlog"
+		public final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Logger.class.getPackage().getName());
 
 		public void log (int level, String category, String message, Throwable ex) {
 			StringBuilder builder = new StringBuilder(256);
-
-			long time = new Date().getTime() - firstLogTime;
-			long minutes = time / (1000 * 60);
-			long seconds = time / (1000) % 60;
-			if (minutes <= 9) builder.append('0');
-			builder.append(minutes);
-			builder.append(':');
-			if (seconds <= 9) builder.append('0');
-			builder.append(seconds);
+			if (category != null) {
+				builder.append(category);
+				builder.append(": ");
+			}
+			builder.append(message);
+			String line = builder.toString();
 
 			switch (level) {
-			case LEVEL_ERROR:
-				builder.append(" ERROR: ");
-				break;
-			case LEVEL_WARN:
-				builder.append("  WARN: ");
-				break;
-			case LEVEL_INFO:
-				builder.append("  INFO: ");
-				break;
-			case LEVEL_DEBUG:
-				builder.append(" DEBUG: ");
-				break;
-			case LEVEL_TRACE:
-				builder.append(" TRACE: ");
-				break;
+				case LEVEL_ERROR: logger.error (line, ex); break;
+				case LEVEL_WARN:  logger.warn  (line, ex); break;
+				case LEVEL_INFO:  logger.info  (line, ex); break;
+				case LEVEL_DEBUG: logger.debug (line, ex); break;
+				case LEVEL_TRACE: logger.trace (line, ex); break;
 			}
-
-			if (category != null) {
-				builder.append('[');
-				builder.append(category);
-				builder.append("] ");
-			}
-
-			builder.append(message);
-
-			if (ex != null) {
-				StringWriter writer = new StringWriter(256);
-				ex.printStackTrace(new PrintWriter(writer));
-				builder.append('\n');
-				builder.append(writer.toString().trim());
-			}
-
-			print(builder.toString());
-		}
-
-		/**
-		 * Prints the message to System.out. Called by the default implementation of {@link #log(int, String, String, Throwable)}.
-		 */
-		protected void print (String message) {
-			System.out.println(message);
 		}
 	}
 }
