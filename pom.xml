@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.esotericsoftware.minlog</groupId>
 	<artifactId>minlog</artifactId>
-	<version>1.2</version>
+	<version>1.2-slf4j-jdanbrown-0</version>
 	<packaging>jar</packaging>
 	<name>MinLog</name>
 	<description>Minimal overhead Java logging</description>
