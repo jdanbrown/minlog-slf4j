@@ -174,6 +174,9 @@ public class Log {
 		public final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Logger.class.getPackage().getName());
 
 		public void log (int level, String category, String message, Throwable ex) {
+			if (level == LEVEL_NONE) {
+				return;
+			}
 			StringBuilder builder = new StringBuilder(256);
 			if (category != null) {
 				builder.append(category);
